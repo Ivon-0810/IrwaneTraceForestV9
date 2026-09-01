@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}IrwaneTraceForest{% endblock %} — ITF</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-theme="{{ theme_actif }}">
+{% if session.user_id and request.endpoint not in ['lock_screen', 'changer_mot_de_passe'] %}
+<div class="shell">
+  <aside class="sidebar {% if session.role == 'SUPER_ADMIN' %}sidebar-superadmin{% endif %}">
+    <div class="brand">
+      <img src="{{ url_for('static', filename='img/logo_badge.png') }}" alt="ITF" class="brand-mark-img">
+      <span class="brand-name">IrwaneTraceForest</span>
+    </div>
+    {% if session.tenant_id %}
+    <div class="tenant-banner">Interface exclusive — {{ tenant_courant_nom }}</div>
+    {% elif session.role == 'SUPER_ADMIN' %}
+    <div class="tenant-banner tenant-banner-super">Console Super-Admin — accès global</div>
+    {% endif %}
+    <nav>
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint=='dashboard' }}">Tableau de bord</a>
+      {% if session.role == 'SUPER_ADMIN' %}
+        <div class="nav-section">Super-Admin</div>
+        <a href="{{ url_for('dashboard') }}" class="badge-link">Licences & Sociétés</a>
+        <a href="{{ url_for('module8') }}" class="badge-link {{ 'active' if request.endpoint=='module8' }}">Module 8 — Suite autonome</a>
+        <a href="{{ url_for('parametres') }}" class="badge-link {{ 'active' if request.endpoint=='parametres' }}">⚙️ Paramètres</a>
+        <a href="{{ url_for('super_admin_utilisateurs') }}" class="badge-link {{ 'active' if request.endpoint=='super_admin_utilisateurs' }}">Utilisateurs — toutes sociétés</a>
+      {% else %}
+        {% if session.role == 'ADMIN' %}
+        <a href="{{ url_for('utilisateurs_societe') }}" class="{{ 'active' if request.endpoint=='utilisateurs_societe' }}">Mon équipe</a>
+        {% endif %}
+        {% if session.role in ['PROSPECTEUR_FORESTIER','ADMIN','AUDITEUR_CONTROLEUR'] %}
+        <a href="{{ url_for('inventaire') }}" class="{{ 'active' if request.endpoint=='inventaire' }}">Inventaire forestier</a>
+        {% endif %}
+        {% if session.role in ['CHEF_PARC_FORESTIER','ADMIN','AUDITEUR_CONTROLEUR'] %}
+        <a href="{{ url_for('df10') }}" class="{{ 'active' if request.endpoint=='df10' }}">Registre DF10</a>
+        <a href="{{ url_for('transport') }}" class="{{ 'active' if request.endpoint in ['transport','transport_pdf'] }}">Transport / LV</a>
+        {% endif %}
+        {% if session.role in ['CHEF_PARC_USINE','ADMIN','AUDITEUR_CONTROLEUR'] %}
+        <a href="{{ url_for('parc_usine') }}" class="{{ 'active' if request.endpoint=='parc_usine' }}">Parc à grumes usine</a>
+        {% endif %}
+        {% if session.role in ['CHEF_PARC_USINE','RESPONSABLE_SCIERIE','ADMIN','AUDITEUR_CONTROLEUR'] %}
+        <a href="{{ url_for('transformation') }}" class="{{ 'active' if request.endpoint=='transformation' }}">Transformation</a>
+        {% endif %}
+        {% if session.role in ['RESPONSABLE_SCIERIE','ADMIN','AUDITEUR_CONTROLEUR'] %}
+        <a href="{{ url_for('scierie') }}" class="{{ 'active' if request.endpoint=='scierie' }}">Scierie & rendements</a>
+        {% endif %}
+        {% if session.role in ['ADMIN','AUDITEUR_CONTROLEUR'] %}
+        <a href="{{ url_for('contrats') }}" class="{{ 'active' if request.endpoint=='contrats' }}">Contrats & exports</a>
+        {% endif %}
+        {% if session.role in ['AUDITEUR_CONTROLEUR','ADMIN'] %}
+        <a href="{{ url_for('audit') }}" class="{{ 'active' if request.endpoint=='audit' }}">Journal d'audit</a>
+        {% endif %}
+        <a href="{{ url_for('genealogie_recherche') }}" class="{{ 'active' if request.endpoint in ['genealogie_recherche','genealogie'] }}">Généalogie du bois</a>
+      {% endif %}
+      <a href="{{ url_for('sync_page') }}" class="{{ 'active' if request.endpoint=='sync_page' }}">🔄 Synchronisation</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="theme-switch">
+        <form method="POST" action="{{ url_for('changer_theme', nom_theme='emeraude') }}" style="display:inline">
+          <button type="submit" class="theme-btn {{ 'theme-btn-active' if theme_actif == 'emeraude' }}" title="Thème émeraude">☀️</button>
+        </form>
+        <form method="POST" action="{{ url_for('changer_theme', nom_theme='sombre') }}" style="display:inline">
+          <button type="submit" class="theme-btn {{ 'theme-btn-active' if theme_actif == 'sombre' }}" title="Thème sombre">🌙</button>
+        </form>
+      </div>
+      <div class="user-chip">
+        <div class="user-name"><a href="{{ url_for('mon_compte') }}" style="color:inherit; text-decoration:none;">{{ session.nom_complet }}</a></div>
+        <div class="user-role">{{ session.role }}</div>
+      </div>
+      <a href="{{ url_for('logout') }}" class="logout-link">Déconnexion</a>
+    </div>
+  </aside>
+  <main class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack flash-stack-center">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content_auth %}{% endblock %}
+{% endif %}
+</body>
+</html>

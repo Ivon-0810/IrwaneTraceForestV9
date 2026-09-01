@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Paramètres{% endblock %}
+{% block content %}
+<h1>Paramètres <span class="badge badge-super">Super-Admin</span></h1>
+<div class="subtitle">Tous les réglages globaux du système, réunis en un seul endroit.</div>
+
+<div class="grid-cards">
+  <div class="stat-card"><div class="value">{{ nb_tenants }}</div><div class="label">Sociétés</div></div>
+  <div class="stat-card"><div class="value">{{ nb_utilisateurs }}</div><div class="label">Utilisateurs</div></div>
+  <div class="stat-card"><div class="value">{{ '✓' if params_sync.url_serveur_central else '—' }}</div><div class="label">Serveur de sync configuré</div></div>
+</div>
+
+<div class="card">
+  <h2>🔑 Mon mot de passe</h2>
+  <p style="font-size:13px; color:var(--slate-light)">Changez votre propre mot de passe de connexion.</p>
+  <a class="btn" href="{{ url_for('mon_compte') }}">Aller à Mon compte</a>
+</div>
+
+<div class="card">
+  <h2>🏢 Licences & sociétés</h2>
+  <p style="font-size:13px; color:var(--slate-light)">
+    Créer une société, suspendre ou renouveler une licence, générer un voucher d'auto-réactivation.
+  </p>
+  <a class="btn" href="{{ url_for('dashboard') }}">Gérer les licences & sociétés</a>
+</div>
+
+<div class="card">
+  <h2>👥 Utilisateurs de toutes les sociétés</h2>
+  <p style="font-size:13px; color:var(--slate-light)">
+    Nommer un Admin pour une société, voir tous les comptes existants, réinitialiser un mot de passe.
+  </p>
+  <a class="btn" href="{{ url_for('super_admin_utilisateurs') }}">Gérer les utilisateurs</a>
+</div>
+
+<div class="card">
+  <h2>🔄 Synchronisation & mode hors-ligne</h2>
+  <p style="font-size:13px; color:var(--slate-light)">
+    Configurer l'adresse du serveur central
+    {% if params_sync.url_serveur_central %}(actuellement : <code>{{ params_sync.url_serveur_central }}</code>){% endif %},
+    activer la synchronisation automatique.
+  </p>
+  <a class="btn" href="{{ url_for('sync_page') }}">Aller à Synchronisation</a>
+</div>
+
+<div class="card">
+  <h2>🐍 Module 8 — Suite Python autonome</h2>
+  <p style="font-size:13px; color:var(--slate-light)">Exporter <code>irwanetrace_core.py</code>, réservé exclusivement à ce compte.</p>
+  <a class="btn" href="{{ url_for('module8') }}">Aller au Module 8</a>
+</div>
+{% endblock %}

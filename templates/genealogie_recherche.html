@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Généalogie{% endblock %}
+{% block content %}
+<h1>Généalogie du bois</h1>
+<div class="subtitle">Sélectionnez une grume pour remonter sa chaîne complète, de la souche au client.</div>
+
+<div class="card">
+  <form method="GET" action="" onsubmit="event.preventDefault(); window.location = '/genealogie/' + document.getElementById('sel').value;">
+    <label>Grume DF10</label>
+    <select id="sel" name="numero_df10" required style="margin-bottom:14px">
+      {% for g in grumes %}<option value="{{ g.numero_df10 }}">{{ g.numero_df10 }}</option>{% endfor %}
+    </select>
+    <button type="submit">Voir la généalogie</button>
+  </form>
+</div>
+{% endblock %}

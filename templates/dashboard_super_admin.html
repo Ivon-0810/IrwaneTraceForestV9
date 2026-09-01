@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Super-Admin{% endblock %}
+{% block content %}
+<h1>Console Super-Admin <span class="badge badge-super">Gauthier MBILI</span></h1>
+<div class="subtitle">Gestion exclusive des licences, vouchers et sociétés — droit réservé au SUPER_ADMIN.</div>
+
+<div class="grid-cards">
+  <div class="stat-card"><div class="value">{{ stats.nb_tenants }}</div><div class="label">Sociétés</div></div>
+  <div class="stat-card"><div class="value">{{ stats.nb_utilisateurs }}</div><div class="label">Utilisateurs</div></div>
+  <div class="stat-card"><div class="value">{{ stats.evenements_audit }}</div><div class="label">Événements d'audit</div></div>
+</div>
+
+<div class="card">
+  <h2>Créer une nouvelle société (tenant)</h2>
+  <form method="POST" action="{{ url_for('creer_tenant') }}" class="inline-form">
+    <input type="text" name="nom" placeholder="Nom de la société" required style="width:220px">
+    <input type="text" name="code" placeholder="Code (ex: SOFOCAM)" required style="width:160px">
+    <button type="submit">Créer</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Sociétés & licences</h2>
+  <table>
+    <thead><tr>
+      <th>Société</th><th>Code</th><th>Statut</th><th>Échéance</th><th>Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for t in tenants %}
+      <tr>
+        <td><strong>{{ t.nom }}</strong></td>
+        <td>{{ t.code }}</td>
+        <td>
+          {% if t.statut == 'SUSPENDU' %}<span class="badge badge-suspendu">SUSPENDU</span>
+          {% elif t.licence_expire_le and t.licence_expire_le < today %}<span class="badge badge-expire">EXPIRÉ</span>
+          {% else %}<span class="badge badge-actif">ACTIF</span>{% endif %}
+        </td>
+        <td>{{ t.licence_expire_le or '—' }}</td>
+        <td>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <form method="POST" action="{{ url_for('suspendre_tenant', tenant_id=t.id) }}">
+              <button class="btn-danger" type="submit">Suspendre</button>
+            </form>
+            <form method="POST" action="{{ url_for('reactiver_tenant', tenant_id=t.id) }}" class="inline-form">
+              <select name="jours" style="width:110px">
+                <option value="30">30 jours</option>
+                <option value="90">90 jours</option>
+                <option value="180">180 jours</option>
+                <option value="365">1 an</option>
+                <option value="730">2 ans</option>
+              </select>
+              <button class="btn-amber" type="submit">Renouveler direct</button>
+            </form>
+            <form method="POST" action="{{ url_for('generer_voucher_route', tenant_id=t.id) }}" class="inline-form">
+              <select name="jours" style="width:110px">
+                <option value="30">30 jours</option>
+                <option value="90">90 jours</option>
+                <option value="180">180 jours</option>
+                <option value="365">1 an</option>
+                <option value="730">2 ans</option>
+              </select>
+              <button class="btn-outline" type="submit">Générer voucher</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

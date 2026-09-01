@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Licence verrouillée{% endblock %}
+{% block content_auth %}
+<div class="lock-page">
+  <div class="lock-card">
+    <img src="{{ url_for('static', filename='img/logo_badge.png') }}" alt="ITF" style="width:60px; height:60px; border-radius:14px; margin-bottom:10px;">
+    <h1>Accès verrouillé</h1>
+    <p style="color:var(--slate-light); font-size:13.5px;">
+      La licence de <strong>{{ tenant.nom if tenant else 'votre société' }}</strong> a expiré ou a été suspendue.
+      Saisissez le code d'activation reçu par SMS / WhatsApp / e-mail pour réactiver l'accès en toute autonomie.
+    </p>
+    <form method="POST" action="{{ url_for('lock_activer') }}" style="margin-top:18px; text-align:left;">
+      <label>Code d'activation</label>
+      <input type="text" name="code" placeholder="ACT-ENTREPRISE-90J-XXXXXXXX-2026" required
+             style="text-transform:uppercase; letter-spacing:0.5px;">
+      <button type="submit" style="width:100%; margin-top:14px;">Réactiver l'accès</button>
+    </form>
+    <div style="margin-top:16px;">
+      <a href="{{ url_for('logout') }}" style="font-size:12px; color:var(--slate-light);">Se déconnecter</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

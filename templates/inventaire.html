@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Inventaire forestier{% endblock %}
+{% block content %}
+<h1>Inventaire forestier — pieds d'arbre</h1>
+<div class="subtitle">AAC, blocs, coordonnées GPS, DME/DMA. Volume estimé : V = (π·D²/4)·H·Fforme</div>
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Nouvelle saisie</h2>
+  <form method="POST">
+    <div class="form-grid">
+      <div><label>UFA</label><input name="ufa"></div>
+      <div><label>AAC</label><input name="aac"></div>
+      <div><label>Bloc</label><input name="bloc"></div>
+      <div><label>Essence</label>
+        <select name="essence_id" required>
+          {% for e in essences %}<option value="{{ e.id }}">{{ e.nom }} (DME {{ e.dme_cm }}cm)</option>{% endfor %}
+        </select>
+      </div>
+      <div><label>Diamètre (cm)</label><input type="number" step="0.1" name="diametre_cm" required></div>
+      <div><label>Hauteur (m)</label><input type="number" step="0.1" name="hauteur_m" required></div>
+      <div><label>Facteur de forme</label><input type="number" step="0.05" name="facteur_forme" value="0.7"></div>
+      <div><label>Latitude</label><input type="number" step="0.000001" name="latitude"></div>
+      <div><label>Longitude</label><input type="number" step="0.000001" name="longitude"></div>
+    </div>
+    <button type="submit">Enregistrer l'arbre</button>
+  </form>
+</div>
+{% endif %}
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Import Excel</h2>
+  <p style="font-size:12.5px; color:var(--slate-light)">
+    Colonnes attendues, dans cet ordre, ligne d'en-tête incluse :
+    <code>ufa, aac, bloc, essence_nom, diametre_cm, hauteur_m, facteur_forme, latitude, longitude</code>
+    (le nom d'essence doit correspondre exactement au catalogue).
+    <a href="{{ url_for('modele_excel', nom_rapport='inventaire') }}">Télécharger le modèle vierge</a>.
+  </p>
+  <form method="POST" action="{{ url_for('import_excel_inventaire') }}" enctype="multipart/form-data" class="inline-form">
+    <input type="file" name="fichier" accept=".xlsx" required>
+    <button type="submit">Importer</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="margin:0">Derniers arbres inventoriés</h2>
+    <a class="btn btn-outline" href="{{ url_for('export_excel', nom_rapport='inventaire') }}">Export (Excel)</a>
+  </div>
+  <table style="margin-top:14px">
+    <thead><tr><th>UFA/AAC/Bloc</th><th>Essence</th><th>D (cm)</th><th>H (m)</th><th>Volume (m³)</th><th>DME</th><th>Saisi par</th></tr></thead>
+    <tbody>
+    {% for a in arbres %}
+      <tr>
+        <td>{{ a.ufa }} / {{ a.aac }} / {{ a.bloc }}</td>
+        <td>{{ a.essence_nom }}</td>
+        <td>{{ a.diametre_cm }}</td>
+        <td>{{ a.hauteur_m }}</td>
+        <td>{{ a.volume_m3 }}</td>
+        <td>{% if a.conforme_dme %}<span class="badge badge-actif">OK</span>{% else %}<span class="badge badge-suspendu">Non conforme</span>{% endif %}</td>
+        <td>{{ a.saisi_par }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

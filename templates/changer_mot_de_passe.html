@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Nouveau mot de passe{% endblock %}
+{% block content_auth %}
+<div class="lock-page">
+  <div class="lock-card">
+    <img src="{{ url_for('static', filename='img/logo_badge.png') }}" alt="ITF" style="width:60px; height:60px; border-radius:14px; margin-bottom:10px;">
+    <h1 style="color:var(--emerald-deep)">Définissez votre mot de passe</h1>
+    <p style="color:var(--slate-light); font-size:13.5px;">
+      Ce compte vient d'être créé par {{ 'le Super-Admin' if session.role != 'ADMIN' else "l'administrateur de votre société" }}.
+      Pour votre sécurité, choisissez un mot de passe personnel avant de continuer.
+    </p>
+    <form method="POST" style="margin-top:18px; text-align:left;">
+      <label>Nouveau mot de passe (8 caractères minimum)</label>
+      <input type="password" name="nouveau_mdp" minlength="8" required autofocus>
+      <label style="margin-top:12px">Confirmer le mot de passe</label>
+      <input type="password" name="confirmation_mdp" minlength="8" required>
+      <button type="submit" style="width:100%; margin-top:16px;">Valider et continuer</button>
+    </form>
+    <div style="margin-top:16px;">
+      <a href="{{ url_for('logout') }}" style="font-size:12px; color:var(--slate-light);">Se déconnecter</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

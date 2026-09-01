@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Parc usine{% endblock %}
+{% block content %}
+<h1>Parc à grumes usine & achats tiers</h1>
+<div class="subtitle">Carnet Entrée Usine (CEU) — rapprochement des lettres de voiture reçues avec le stock physique.</div>
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Nouvelle réception</h2>
+  <form method="POST">
+    <div class="form-grid">
+      <div><label>N° lettre de voiture (interne, optionnel)</label>
+        <select name="numero_lv">
+          <option value="">— Achat tiers direct —</option>
+          {% for lv in lvs_en_route %}<option value="{{ lv.numero_lv }}">{{ lv.numero_lv }} ({{ lv.cubage_total_m3 }} m³)</option>{% endfor %}
+        </select>
+      </div>
+      <div><label>Fournisseur tiers</label><input name="fournisseur_tiers"></div>
+      <div><label>N° agrément</label><input name="numero_agrement"></div>
+      <div><label>N° IFU</label><input name="ifu"></div>
+      <div><label>Volume reçu (m³)</label><input type="number" step="0.01" name="volume_recu_m3" required></div>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:22px;">
+        <input type="checkbox" name="conforme" checked style="width:auto"> <label style="margin:0">Conforme aux documents</label>
+      </div>
+    </div>
+    <button type="submit">Enregistrer la réception</button>
+  </form>
+</div>
+{% endif %}
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Import Excel</h2>
+  <p style="font-size:12.5px; color:var(--slate-light)">
+    Colonnes attendues : <code>numero_lv, fournisseur_tiers, numero_agrement, ifu, volume_recu_m3, conforme (oui/non)</code>.
+    <a href="{{ url_for('modele_excel', nom_rapport='stock') }}">Télécharger le modèle vierge</a>.
+  </p>
+  <form method="POST" action="{{ url_for('import_excel_parc_usine') }}" enctype="multipart/form-data" class="inline-form">
+    <input type="file" name="fichier" accept=".xlsx" required>
+    <button type="submit">Importer</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="margin:0">Réceptions récentes</h2>
+    <a class="btn btn-outline" href="{{ url_for('export_excel', nom_rapport='stock') }}">Export stock (Excel)</a>
+  </div>
+  <table style="margin-top:14px">
+    <thead><tr><th>N° CEU</th><th>N° LV</th><th>Fournisseur</th><th>N° Agrément / IFU</th><th>Volume (m³)</th><th>Conforme</th><th></th></tr></thead>
+    <tbody>
+    {% for r in receptions %}
+      <tr>
+        <td><strong>{{ r.numero_ceu or '—' }}</strong></td>
+        <td>{{ r.numero_lv or '—' }}</td>
+        <td>{{ r.fournisseur_tiers or '—' }}</td>
+        <td>{{ r.numero_agrement or '—' }} / {{ r.ifu or '—' }}</td>
+        <td>{{ r.volume_recu_m3 }}</td>
+        <td>{% if r.conforme %}<span class="badge badge-actif">Oui</span>{% else %}<span class="badge badge-suspendu">Non</span>{% endif %}</td>
+        <td><a class="btn btn-outline" href="{{ url_for('parc_usine_pdf', reception_id=r.id) }}">PDF</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

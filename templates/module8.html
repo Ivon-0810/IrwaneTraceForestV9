@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Module 8{% endblock %}
+{% block content %}
+<h1>Module 8 — Suite Python autonome <span class="badge badge-super">Réservé Super-Admin</span></h1>
+<div class="subtitle">
+  Export de <code>irwanetrace_core.py</code> (formules de cubage vectorisées + lecteur SQLite local).
+  Cet export est strictement réservé au compte Super-Admin exclusif — la vérification des droits
+  est effectuée côté serveur à chaque appel, elle ne dépend jamais de l'affichage de cette page.
+</div>
+
+<div class="card">
+  <h2>Générer un nouvel export</h2>
+  <form method="POST" action="{{ url_for('module8_export') }}">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+      <input type="checkbox" name="inclure_base" checked style="width:auto">
+      <label style="margin:0">Inclure une copie de la base SQLite courante (itf_export.db)</label>
+    </div>
+    <button type="submit" class="btn-amber">Télécharger irwanetrace_core.zip</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Historique des exports</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Utilisateur</th><th>Fichier</th><th>IP</th></tr></thead>
+    <tbody>
+    {% for e in exports %}
+      <tr>
+        <td>{{ e.horodatage }}</td>
+        <td>{{ e.utilisateur }}</td>
+        <td>{{ e.nom_fichier }}</td>
+        <td>{{ e.session_ip }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

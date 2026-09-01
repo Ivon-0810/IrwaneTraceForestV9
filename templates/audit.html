@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Journal d'audit{% endblock %}
+{% block content %}
+<h1>Journal d'audit — Traçabilité FLEGT</h1>
+<div class="subtitle">Toute action (création, modification, validation, suppression, transfert) est horodatée avec son auteur et son adresse IP de session.</div>
+
+<div style="margin-bottom:14px">
+  <a class="btn btn-outline" href="{{ url_for('export_excel', nom_rapport='audit') }}">Export du journal (Excel)</a>
+</div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>Horodatage</th><th>Utilisateur</th><th>Rôle</th><th>Action</th><th>Module</th><th>Détails</th><th>IP</th></tr></thead>
+    <tbody>
+    {% for l in logs %}
+      <tr>
+        <td>{{ l.horodatage }}</td>
+        <td>{{ l.utilisateur }}</td>
+        <td>{{ l.role }}</td>
+        <td><strong>{{ l.action }}</strong></td>
+        <td>{{ l.module }}</td>
+        <td>{{ l.details }}</td>
+        <td>{{ l.session_ip }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

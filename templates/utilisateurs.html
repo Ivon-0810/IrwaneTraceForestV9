@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Mon équipe{% endblock %}
+{% block content %}
+<h1>Mon équipe</h1>
+<div class="subtitle">
+  Gérez les collaborateurs de votre société. Vous ne pouvez créer que des comptes opérationnels
+  (pas de compte Admin ou Super-Admin) et vous ne voyez jamais les utilisateurs des autres sociétés.
+</div>
+
+<div class="card">
+  <h2>Ajouter un collaborateur</h2>
+  <form method="POST" action="{{ url_for('creer_utilisateur_societe') }}">
+    <div class="form-grid">
+      <div><label>Rôle</label>
+        <select name="role" required>
+          {% for r in roles %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+        </select>
+      </div>
+      <div><label>Nom complet</label><input name="nom_complet" required></div>
+      <div><label>E-mail</label><input type="email" name="email" required></div>
+    </div>
+    <button type="submit">Créer le compte</button>
+  </form>
+  <p style="font-size:12px; color:var(--slate-light); margin-top:10px;">
+    Un mot de passe temporaire est généré automatiquement et affiché une seule fois après
+    création — transmettez-le en sécurité à la personne concernée.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Équipe actuelle</h2>
+  <table>
+    <thead><tr><th>Nom</th><th>E-mail</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for u in utilisateurs %}
+      <tr>
+        <td>{{ u.nom_complet }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.role }}</td>
+        <td>{% if u.actif %}<span class="badge badge-actif">Actif</span>{% else %}<span class="badge badge-suspendu">Désactivé</span>{% endif %}</td>
+        <td>
+          {% if u.role != 'ADMIN' %}
+          <form method="POST" action="{{ url_for('toggle_utilisateur_societe', user_id=u.id) }}">
+            <button type="submit" class="{{ 'btn-danger' if u.actif else 'btn' }}">{{ 'Désactiver' if u.actif else 'Réactiver' }}</button>
+          </form>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

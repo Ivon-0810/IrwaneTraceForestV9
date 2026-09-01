@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Mon compte{% endblock %}
+{% block content %}
+<h1>Mon compte</h1>
+<div class="subtitle">Vos informations et votre mot de passe personnel.</div>
+
+<div class="card">
+  <h2>Informations</h2>
+  <table>
+    <tr><td style="width:200px">Nom complet</td><td><strong>{{ utilisateur.nom_complet }}</strong></td></tr>
+    <tr><td>E-mail</td><td>{{ utilisateur.email }}</td></tr>
+    <tr><td>Rôle</td><td><span class="badge {{ 'badge-super' if utilisateur.role == 'SUPER_ADMIN' else 'badge-actif' }}">{{ utilisateur.role }}</span></td></tr>
+    {% if tenant %}<tr><td>Société</td><td>{{ tenant.nom }}</td></tr>{% endif %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>Changer mon mot de passe</h2>
+  <form method="POST" style="max-width:360px">
+    <label>Mot de passe actuel</label>
+    <input type="password" name="mot_de_passe_actuel" required>
+    <label style="margin-top:12px">Nouveau mot de passe (8 caractères minimum)</label>
+    <input type="password" name="nouveau_mdp" minlength="8" required>
+    <label style="margin-top:12px">Confirmer le nouveau mot de passe</label>
+    <input type="password" name="confirmation_mdp" minlength="8" required>
+    <button type="submit" style="margin-top:16px;">Mettre à jour le mot de passe</button>
+  </form>
+</div>
+{% endblock %}

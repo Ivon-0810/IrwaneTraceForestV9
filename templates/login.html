@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Connexion{% endblock %}
+{% block content_auth %}
+<div class="auth-page">
+  <div class="auth-card">
+    <img src="{{ url_for('static', filename='img/logo_badge.png') }}" alt="ITF" style="width:72px; height:72px; border-radius:16px; margin-bottom:14px;">
+    <h1>IrwaneTraceForest</h1>
+    <div class="subtitle">ERP Traçabilité Forestière & Industrielle — Bassin du Congo</div>
+    <form method="POST">
+      <label>Adresse e-mail</label>
+      <input type="email" name="email" required autofocus>
+      <label style="margin-top:12px">Mot de passe</label>
+      <input type="password" name="password" required>
+      <button type="submit">Se connecter</button>
+    </form>
+    <div class="auth-hint">
+      Compte Super-Admin (démo) : myvongauthier@gmail.com<br>
+      Comptes ADMIN (démo) : admin@sofocam.itf, admin@alpicam.itf, admin@pallisco.itf, admin@sefac.itf — mot de passe démo : Demo2026!<br>
+      <strong>Pensez à changer tous les mots de passe démo avant mise en production.</strong>
+    </div>
+  </div>
+</div>
+{% endblock %}

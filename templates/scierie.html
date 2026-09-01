@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Scierie{% endblock %}
+{% block content %}
+<h1>Scierie & rendements matière</h1>
+<div class="subtitle">Rendement (%) = Volume sciages marchands / Volume grume entrée × 100</div>
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Nouveau débit</h2>
+  <form method="POST">
+    <div class="form-grid">
+      <div><label>Ligne de sciage</label><input name="ligne_sciage" placeholder="Ligne bâti principal"></div>
+      <div><label>Réception liée (optionnel)</label>
+        <select name="reception_id">
+          <option value="">— Non rattaché —</option>
+          {% for r in receptions %}<option value="{{ r.id }}">{{ r.numero_ceu or r.fournisseur_tiers }}</option>{% endfor %}
+        </select>
+      </div>
+      <div><label>Volume grume entrée (m³)</label><input type="number" step="0.01" name="volume_grume_entree_m3" required></div>
+      <div><label>Volume sciages marchands (m³)</label><input type="number" step="0.01" name="volume_sciages_m3" required></div>
+    </div>
+    <button type="submit">Enregistrer le débit</button>
+  </form>
+</div>
+{% endif %}
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Import Excel</h2>
+  <p style="font-size:12.5px; color:var(--slate-light)">
+    Colonnes attendues : <code>ligne_sciage, numero_ceu, volume_grume_entree_m3, volume_sciages_m3</code>
+    (le N° CEU est facultatif). Le N° de lot est généré automatiquement.
+    <a href="{{ url_for('modele_excel', nom_rapport='production') }}">Télécharger le modèle vierge</a>.
+  </p>
+  <form method="POST" action="{{ url_for('import_excel_scierie') }}" enctype="multipart/form-data" class="inline-form">
+    <input type="file" name="fichier" accept=".xlsx" required>
+    <button type="submit">Importer</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="margin:0">Débits récents</h2>
+    <a class="btn btn-outline" href="{{ url_for('export_excel', nom_rapport='production') }}">Export production (Excel)</a>
+  </div>
+  <table style="margin-top:14px">
+    <thead><tr><th>N° Lot</th><th>Ligne</th><th>Grume (m³)</th><th>Sciages (m³)</th><th>Rendement</th></tr></thead>
+    <tbody>
+    {% for d in debits %}
+      <tr>
+        <td><strong>{{ d.numero_lot or '—' }}</strong></td>
+        <td>{{ d.ligne_sciage or '—' }}</td>
+        <td>{{ d.volume_grume_entree_m3 }}</td>
+        <td>{{ d.volume_sciages_m3 }}</td>
+        <td>
+          {% if d.rendement_pct < 40 %}<span class="badge badge-suspendu">{{ d.rendement_pct }}%</span>
+          {% else %}<span class="badge badge-actif">{{ d.rendement_pct }}%</span>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

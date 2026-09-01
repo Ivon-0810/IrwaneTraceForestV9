@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Registre DF10{% endblock %}
+{% block content %}
+<h1>Registre DF10 — Abattage</h1>
+<div class="subtitle">Numérotation officielle DF10-[UFA]-[AAC]-[SEQ]. Cubage : Dm=(D1+D2)/2 ; V=π·Dm²/40000·L</div>
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Nouvelle grume abattue</h2>
+  <form method="POST">
+    <div class="form-grid">
+      <div><label>UFA</label><input name="ufa" required></div>
+      <div><label>AAC</label><input name="aac" required></div>
+      <div><label>N° plaquette</label><input name="numero_plaquette"></div>
+      <div><label>Essence</label>
+        <select name="essence_id" required>{% for e in essences %}<option value="{{ e.id }}">{{ e.nom }}</option>{% endfor %}</select>
+      </div>
+      <div><label>Diamètre gros bout (cm)</label><input type="number" step="0.1" name="diametre_gros_bout_cm" required></div>
+      <div><label>Diamètre petit bout (cm)</label><input type="number" step="0.1" name="diametre_petit_bout_cm" required></div>
+      <div><label>Longueur (m)</label><input type="number" step="0.1" name="longueur_m" required></div>
+    </div>
+    <button type="submit">Enregistrer la grume</button>
+  </form>
+</div>
+{% endif %}
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Import Excel</h2>
+  <p style="font-size:12.5px; color:var(--slate-light)">
+    Colonnes attendues : <code>ufa, aac, numero_plaquette, essence_nom, diametre_gros_bout_cm,
+    diametre_petit_bout_cm, longueur_m</code>. Le numéro DF10 est généré automatiquement.
+    <a href="{{ url_for('modele_excel', nom_rapport='df10') }}">Télécharger le modèle vierge</a>.
+  </p>
+  <form method="POST" action="{{ url_for('import_excel_df10') }}" enctype="multipart/form-data" class="inline-form">
+    <input type="file" name="fichier" accept=".xlsx" required>
+    <button type="submit">Importer</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="margin:0">Grumes enregistrées</h2>
+    <a class="btn btn-outline" href="{{ url_for('export_excel', nom_rapport='df10') }}">Export registre DF10 (Excel)</a>
+  </div>
+  <table style="margin-top:14px">
+    <thead><tr><th>N° DF10</th><th>Essence</th><th>Gros bout</th><th>Petit bout</th><th>Long. (m)</th><th>Volume (m³)</th><th>Statut</th><th></th></tr></thead>
+    <tbody>
+    {% for g in grumes %}
+      <tr>
+        <td><strong>{{ g.numero_df10 }}</strong></td>
+        <td>{{ g.essence_nom }}</td>
+        <td>{{ g.diametre_gros_bout_cm }}</td>
+        <td>{{ g.diametre_petit_bout_cm }}</td>
+        <td>{{ g.longueur_m }}</td>
+        <td>{{ g.volume_m3 }}</td>
+        <td>{{ g.statut }}</td>
+        <td>
+          <a class="btn btn-outline" href="{{ url_for('df10_pdf', grume_id=g.id) }}">PDF</a>
+          <a class="btn btn-outline" href="{{ url_for('genealogie', numero_df10=g.numero_df10) }}">Généalogie</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

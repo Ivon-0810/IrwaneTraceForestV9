@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Généalogie{% endblock %}
+{% block content %}
+<h1>Généalogie du bois</h1>
+<div class="subtitle">Traçabilité ascendante — de la souche à la destination finale.</div>
+
+<div class="card">
+  <h2>1. Souche — Grume {{ grume.numero_df10 }}</h2>
+  <table>
+    <tr><td>Essence</td><td><strong>{{ grume.essence_nom }}</strong></td></tr>
+    <tr><td>UFA / AAC</td><td>{{ grume.ufa }} / {{ grume.aac }}</td></tr>
+    <tr><td>Volume</td><td>{{ grume.volume_m3 }} m³</td></tr>
+    <tr><td>Statut</td><td>{{ grume.statut }}</td></tr>
+    <tr><td>Saisi par</td><td>{{ grume.saisi_par }}</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>2. Transport grumes</h2>
+  {% if lv %}
+  <table>
+    <tr><td>N° LV</td><td><strong>{{ lv.numero_lv }}</strong></td></tr>
+    <tr><td>Chauffeur / Tracteur</td><td>{{ lv.chauffeur }} / {{ lv.tracteur }}</td></tr>
+    <tr><td>Statut</td><td>{{ lv.statut }}</td></tr>
+    {% if lv.poids_total_kg %}<tr><td>Charge à l'essieu</td><td>{{ lv.poids_total_kg }} kg —
+      {% if lv.charge_conforme %}<span class="badge badge-actif">Conforme</span>{% else %}<span class="badge badge-suspendu">Non conforme</span>{% endif %}
+    </td></tr>{% endif %}
+  </table>
+  {% else %}
+  <p style="color:var(--slate-light)">Aucune lettre de voiture associée pour le moment.</p>
+  {% endif %}
+</div>
+
+{% if reception %}
+<div class="card">
+  <h2>3. Réception usine — {{ reception.numero_ceu }}</h2>
+  <table>
+    <tr><td>Fournisseur tiers</td><td>{{ reception.fournisseur_tiers or '—' }}</td></tr>
+    <tr><td>Volume reçu</td><td>{{ reception.volume_recu_m3 }} m³</td></tr>
+    <tr><td>Saisi par</td><td>{{ reception.saisi_par }}</td></tr>
+  </table>
+</div>
+{% endif %}
+
+{% if etapes %}
+<div class="card">
+  <h2>4. Étapes de transformation</h2>
+  <table>
+    <thead><tr><th>Type</th><th>Entrée (m³)</th><th>Sortie (m³)</th><th>Perte</th><th>Saisi par</th></tr></thead>
+    <tbody>
+    {% for e in etapes %}
+      <tr>
+        <td>{{ e.type_etape.replace('_',' ').title() }}</td>
+        <td>{{ e.volume_entree_m3 if e.volume_entree_m3 is not none else '—' }}</td>
+        <td>{{ e.volume_sortie_m3 if e.volume_sortie_m3 is not none else '—' }}</td>
+        <td>{% if e.taux_perte_pct is not none %}{{ e.taux_perte_pct }}%{% else %}—{% endif %}</td>
+        <td>{{ e.saisi_par }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if lots %}
+<div class="card">
+  <h2>5. Lots de sciage</h2>
+  <table>
+    <thead><tr><th>N° Lot</th><th>Ligne</th><th>Volume sciages (m³)</th><th>Rendement</th><th>Saisi par</th></tr></thead>
+    <tbody>
+    {% for l in lots %}
+      <tr>
+        <td><strong>{{ l.numero_lot }}</strong></td>
+        <td>{{ l.ligne_sciage or '—' }}</td>
+        <td>{{ l.volume_sciages_m3 }}</td>
+        <td>{{ l.rendement_pct }}%</td>
+        <td>{{ l.saisi_par }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if lv_bois_debite %}
+<div class="card">
+  <h2>6. Transport bois débité</h2>
+  <table>
+    <thead><tr><th>N° LV</th><th>Chauffeur</th><th>Cubage (m³)</th><th>Statut</th></tr></thead>
+    <tbody>
+    {% for lv2 in lv_bois_debite %}
+      <tr><td><strong>{{ lv2.numero_lv }}</strong></td><td>{{ lv2.chauffeur }}</td><td>{{ lv2.cubage_total_m3 }}</td><td>{{ lv2.statut }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Intervenants rencontrés sur toute la chaîne</h2>
+  <p style="font-size:13.5px">
+    {% for i in intervenants %}<span class="badge badge-actif" style="margin-right:6px">{{ i }}</span>{% endfor %}
+  </p>
+</div>
+{% endblock %}

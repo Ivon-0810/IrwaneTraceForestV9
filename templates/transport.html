@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Transport{% endblock %}
+{% block content %}
+<h1>Transport — Lettres de voiture</h1>
+<div class="subtitle">Lettre de Voiture Grumes ou Bois Débité, avec contrôle de charge à l'essieu facultatif avant édition.</div>
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Nouvelle lettre de voiture</h2>
+  <form method="POST" id="form-lv">
+    <div class="form-grid">
+      <div><label>Type de document</label>
+        <select name="type_lv" id="type_lv" onchange="basculerType()">
+          <option value="GRUMES">Lettre de Voiture — Grumes</option>
+          <option value="BOIS_DEBITE">Lettre de Voiture — Bois débité</option>
+        </select>
+      </div>
+      <div><label>Tracteur</label><input name="tracteur"></div>
+      <div><label>Remorque</label><input name="remorque"></div>
+      <div><label>Chauffeur</label><input name="chauffeur"></div>
+      <div><label>Itinéraire</label><input name="itineraire"></div>
+    </div>
+
+    <div id="bloc-grumes">
+      <label>Grumes à couvrir (DF10 en statut ABATTU)</label>
+      <select name="df10_ids" multiple size="6" style="margin-bottom:14px">
+        {% for g in grumes_dispo %}
+          <option value="{{ g.id }}">{{ g.numero_df10 }} — {{ g.volume_m3 }} m³</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div id="bloc-bois" style="display:none">
+      <label>Lots de sciage à couvrir</label>
+      <select name="scierie_lot_ids" multiple size="6" style="margin-bottom:14px">
+        {% for l in lots_dispo %}
+          <option value="{{ l.id }}">{{ l.numero_lot }} — {{ l.volume_sciages_m3 }} m³</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="card" style="background:#f8fafc; margin-bottom:16px;">
+      <h2 style="font-size:14px">Contrôle de charge à l'essieu (facultatif)</h2>
+      <div class="form-grid">
+        <div><label>Poids à vide (kg)</label><input type="number" step="1" name="poids_a_vide_kg"></div>
+        <div><label>Poids en charge estimé (kg)</label><input type="number" step="1" name="poids_charge_kg"></div>
+        <div><label>Catégorie</label>
+          <select name="categorie_pma">
+            {% for cat, pma in seuils_pma.items() %}<option value="{{ cat }}">{{ cat }} (PMA {{ pma }} kg)</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <p style="font-size:12px; color:var(--slate-light); margin:0;">
+        Non renseigné = aucun contrôle effectué, la lettre de voiture est émise normalement.
+      </p>
+    </div>
+
+    <button type="submit">Émettre la lettre de voiture</button>
+  </form>
+</div>
+<script>
+function basculerType() {
+  var t = document.getElementById('type_lv').value;
+  document.getElementById('bloc-grumes').style.display = (t === 'GRUMES') ? 'block' : 'none';
+  document.getElementById('bloc-bois').style.display = (t === 'BOIS_DEBITE') ? 'block' : 'none';
+}
+</script>
+{% endif %}
+
+{% if session.role != 'AUDITEUR_CONTROLEUR' %}
+<div class="card">
+  <h2>Import Excel</h2>
+  <p style="font-size:12.5px; color:var(--slate-light)">
+    Colonnes attendues : <code>type_lv (GRUMES ou BOIS_DEBITE), tracteur, remorque, chauffeur, itineraire,
+    numero_df10_liste (plusieurs N° séparés par ;), numero_lot_liste (idem pour bois débité),
+    poids_a_vide_kg, poids_charge_kg, categorie_pma</code>. Les DF10 doivent être en statut ABATTU.
+    <a href="{{ url_for('modele_excel', nom_rapport='transport') }}">Télécharger le modèle vierge</a>.
+  </p>
+  <form method="POST" action="{{ url_for('import_excel_transport') }}" enctype="multipart/form-data" class="inline-form">
+    <input type="file" name="fichier" accept=".xlsx" required>
+    <button type="submit">Importer</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="margin:0">Lettres de voiture émises</h2>
+    <a class="btn btn-outline" href="{{ url_for('export_excel', nom_rapport='transport') }}">Export (Excel)</a>
+  </div>
+  <table style="margin-top:14px">
+    <thead><tr><th>N° LV</th><th>Type</th><th>Chauffeur</th><th>Unités</th><th>Cubage (m³)</th><th>Charge</th><th>Statut</th><th></th></tr></thead>
+    <tbody>
+    {% for lv in lvs %}
+      <tr>
+        <td><strong>{{ lv.numero_lv }}</strong></td>
+        <td>{{ 'Bois débité' if lv.type_lv == 'BOIS_DEBITE' else 'Grumes' }}</td>
+        <td>{{ lv.chauffeur }}</td>
+        <td>{{ lv.nombre_billes }}</td>
+        <td>{{ lv.cubage_total_m3 }}</td>
+        <td>
+          {% if lv.poids_total_kg %}
+            {{ lv.poids_total_kg }} kg —
+            {% if lv.charge_conforme %}<span class="badge badge-actif">OK</span>{% else %}<span class="badge badge-suspendu">Surcharge</span>{% endif %}
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ lv.statut }}</td>
+        <td><a class="btn btn-outline" href="{{ url_for('transport_pdf', lv_id=lv.id) }}">PDF</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

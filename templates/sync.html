@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Synchronisation{% endblock %}
+{% block content %}
+<h1>Mode hors-ligne & synchronisation</h1>
+<div class="subtitle">
+  IrwaneTraceForest fonctionne entièrement hors connexion sur sa base locale.
+  Dès qu'Internet est détecté, synchronisez vos données vers le serveur central en un clic.
+</div>
+
+<div class="card">
+  <div style="display:flex; align-items:center; gap:14px;">
+    <span id="pastille-connexion" class="badge {{ 'badge-actif' if en_ligne else 'badge-suspendu' }}">
+      {{ 'En ligne' if en_ligne else 'Hors ligne' }}
+    </span>
+    <span style="font-size:13px; color:var(--slate-light)">
+      {% if tenant %}Dernière synchronisation : <strong>{{ tenant.dernier_sync_le or 'jamais' }}</strong>
+      {% else %}Synchronisation globale (toutes sociétés) — Super-Admin{% endif %}
+    </span>
+  </div>
+  <form method="POST" action="{{ url_for('sync_executer') }}" style="margin-top:16px;">
+    <button type="submit" id="btn-synchroniser" {{ 'disabled' if not en_ligne }}>
+      🔄 Synchroniser maintenant
+    </button>
+  </form>
+  {% if not params.url_serveur_central %}
+  <p style="font-size:12.5px; color:var(--amber); margin-top:12px;">
+    Aucun serveur central n'a encore été configuré par le Super-Admin — la synchronisation
+    restera indisponible jusqu'à sa configuration, mais l'application continue de fonctionner
+    normalement hors ligne.
+  </p>
+  {% endif %}
+</div>
+
+{% if session.role == 'SUPER_ADMIN' %}
+<div class="card">
+  <h2>Configuration du serveur central <span class="badge badge-super">Super-Admin</span></h2>
+  <form method="POST" action="{{ url_for('sync_config') }}">
+    <div class="form-grid">
+      <div><label>URL du serveur central</label>
+        <input name="url_serveur_central" placeholder="https://sync.itf-mea.com"
+               value="{{ params.url_serveur_central or '' }}">
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:22px;">
+        <input type="checkbox" name="auto_sync_actif" {{ 'checked' if params.auto_sync_actif }} style="width:auto">
+        <label style="margin:0">Proposer la synchronisation automatiquement dès connexion détectée</label>
+      </div>
+    </div>
+    <button type="submit">Enregistrer</button>
+  </form>
+  <p style="font-size:12px; color:var(--slate-light); margin-top:10px;">
+    Le serveur central (<code>sync_server.py</code>) doit être déployé séparément sur une machine
+    disposant d'un accès Internet permanent — voir DEPLOIEMENT_EXE.md.
+  </p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Historique des synchronisations</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Statut</th><th>Détails</th><th>Enregistrements</th><th>Déclenché par</th></tr></thead>
+    <tbody>
+    {% for h in historique %}
+      <tr>
+        <td>{{ h.horodatage }}</td>
+        <td>
+          {% if h.statut == 'OK' %}<span class="badge badge-actif">OK</span>
+          {% elif h.statut == 'HORS_LIGNE' %}<span class="badge badge-expire">Hors ligne</span>
+          {% else %}<span class="badge badge-suspendu">{{ h.statut }}</span>{% endif %}
+        </td>
+        <td>{{ h.details }}</td>
+        <td>{{ h.nb_enregistrements }}</td>
+        <td>{{ h.declenche_par }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+// Auto-détection de connexion : interroge le serveur local toutes les 20s
+// et active/désactive le bouton + la pastille sans recharger la page.
+async function verifierConnexionPeriodique() {
+  try {
+    const r = await fetch("{{ url_for('sync_verifier_connexion') }}");
+    const data = await r.json();
+    const pastille = document.getElementById('pastille-connexion');
+    const bouton = document.getElementById('btn-synchroniser');
+    if (data.en_ligne) {
+      pastille.textContent = 'En ligne';
+      pastille.className = 'badge badge-actif';
+      bouton.removeAttribute('disabled');
+    } else {
+      pastille.textContent = 'Hors ligne';
+      pastille.className = 'badge badge-suspendu';
+      bouton.setAttribute('disabled', 'disabled');
+    }
+  } catch (e) { /* silencieux : reste sur le dernier état connu */ }
+}
+setInterval(verifierConnexionPeriodique, 20000);
+</script>
+{% endblock %}

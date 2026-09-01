@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord{% endblock %}
+{% block content %}
+<h1>{{ tenant.nom if tenant else '—' }}</h1>
+<div class="subtitle">Bienvenue {{ session.nom_complet }} — {{ session.role }}</div>
+
+<div class="grid-cards">
+  <div class="stat-card"><div class="value">{{ stats.nb_arbres }}</div><div class="label">Arbres inventoriés</div></div>
+  <div class="stat-card"><div class="value">{{ stats.nb_df10 }}</div><div class="label">Grumes DF10</div></div>
+  <div class="stat-card"><div class="value">{{ "%.2f"|format(stats.volume_df10_m3) }} m³</div><div class="label">Volume abattu</div></div>
+  <div class="stat-card"><div class="value">{{ stats.nb_lv }}</div><div class="label">Lettres de voiture</div></div>
+  <div class="stat-card"><div class="value">{{ "%.1f"|format(stats.rendement_moyen) }}%</div><div class="label">Rendement scierie moyen</div></div>
+</div>
+
+<div class="card">
+  <h2>Statut de licence</h2>
+  <p style="font-size:13.5px; color:var(--slate-light)">
+    Statut : <span class="badge badge-actif">{{ tenant.statut }}</span>
+    — Échéance : <strong>{{ tenant.licence_expire_le or '—' }}</strong>.
+    Seul Gauthier MBILI (Super-Admin) peut renouveler, suspendre ou générer un voucher pour cette licence.
+  </p>
+</div>
+{% endblock %}

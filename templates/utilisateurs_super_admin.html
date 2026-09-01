@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Utilisateurs{% endblock %}
+{% block content %}
+<h1>Utilisateurs — toutes les sociétés <span class="badge badge-super">Vue exclusive Super-Admin</span></h1>
+<div class="subtitle">
+  Un seul compte Super-Admin existe (le vôtre). Chaque Admin de société est nommé exclusivement
+  par vous ici ; il gère ensuite lui-même ses collaborateurs opérationnels, sans jamais voir les
+  autres sociétés.
+</div>
+
+<div class="card">
+  <h2>Nommer un nouvel utilisateur</h2>
+  <form method="POST" action="{{ url_for('super_admin_creer_utilisateur') }}">
+    <div class="form-grid">
+      <div><label>Société</label>
+        <select name="tenant_id" required>
+          {% for t in tenants %}<option value="{{ t.id }}">{{ t.nom }}</option>{% endfor %}
+        </select>
+      </div>
+      <div><label>Rôle</label>
+        <select name="role" required>
+          <option value="ADMIN">ADMIN (Directeur Général de la société)</option>
+          <option value="PROSPECTEUR_FORESTIER">PROSPECTEUR_FORESTIER</option>
+          <option value="CHEF_PARC_FORESTIER">CHEF_PARC_FORESTIER</option>
+          <option value="CHEF_PARC_USINE">CHEF_PARC_USINE</option>
+          <option value="RESPONSABLE_SCIERIE">RESPONSABLE_SCIERIE</option>
+          <option value="AUDITEUR_CONTROLEUR">AUDITEUR_CONTROLEUR</option>
+        </select>
+      </div>
+      <div><label>Nom complet</label><input name="nom_complet" required></div>
+      <div><label>E-mail</label><input type="email" name="email" required></div>
+    </div>
+    <button type="submit">Créer le compte</button>
+  </form>
+  <p style="font-size:12px; color:var(--slate-light); margin-top:10px;">
+    Un mot de passe temporaire est généré automatiquement et affiché une seule fois après
+    création — transmettez-le en sécurité à la personne concernée.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Tous les utilisateurs</h2>
+  <table>
+    <thead><tr><th>Société</th><th>Nom</th><th>E-mail</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for u in utilisateurs %}
+      <tr>
+        <td>{{ u.tenant_nom or '— (Super-Admin)' }}</td>
+        <td>{{ u.nom_complet }}</td>
+        <td>{{ u.email }}</td>
+        <td>{% if u.role == 'SUPER_ADMIN' %}<span class="badge badge-super">SUPER_ADMIN</span>{% else %}{{ u.role }}{% endif %}</td>
+        <td>{% if u.actif %}<span class="badge badge-actif">Actif</span>{% else %}<span class="badge badge-suspendu">Désactivé</span>{% endif %}</td>
+        <td>
+          {% if u.role != 'SUPER_ADMIN' %}
+          <div style="display:flex; gap:6px;">
+            <form method="POST" action="{{ url_for('super_admin_toggle_utilisateur', user_id=u.id) }}">
+              <button type="submit" class="{{ 'btn-danger' if u.actif else 'btn' }}">{{ 'Désactiver' if u.actif else 'Réactiver' }}</button>
+            </form>
+            <form method="POST" action="{{ url_for('super_admin_reinitialiser_mdp', user_id=u.id) }}">
+              <button type="submit" class="btn-outline">Réinit. mot de passe</button>
+            </form>
+          </div>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
